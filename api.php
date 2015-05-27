@@ -10,7 +10,7 @@ require 'vendor/autoload.php';
 
 $app = new \Slim\Slim();
 
-$app->post('/', function() use ($app) {
+$app->post('/webhook', function() use ($app) {
 
 	$configAlerts = require_once 'config.alerts.php';
 
