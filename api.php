@@ -12,7 +12,7 @@ $app = new \Slim\Slim();
 
 $app->post('/api', function() use ($app) {
 
-	$configAlerts = require_once 'config-alerts.php';
+	$configAlerts = require_once 'config.alerts.php';
 
 	$newRelicAlert = new NewRelicAlert($configAlerts['NewRelic']);
 	$newRelicAlert->setPayload($app->request()->getBody());
