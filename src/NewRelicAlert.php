@@ -33,19 +33,19 @@ class NewRelicAlert extends Alert
 		$this->component_id = $this->_config[$this->_payload['policy_name']]['component_id'];
 		$this->info 		= $this->_payload['condition_name'];
 
-		if(	$this->_payload['current_state'] == 'OPEN' &&
-			$this->_payload['severity'] == 'CRITICAL')
+		if(	strtolower($this->_payload['current_state']) == 'OPEN' &&
+			strtolower($this->_payload['severity']) == 'CRITICAL')
 		{
 			$this->status = $this->_config[$this->_payload['policy_name']]['down'];
 		}
 
-		if(	$this->_payload['current_state'] == 'OPEN' &&
-			$this->_payload['severity'] == 'WARN')
+		if(	strtolower($this->_payload['current_state']) == 'OPEN' &&
+			strtolower($this->_payload['severity']) == 'WARN')
 		{
 			$this->status = $this->_config[$this->_payload['policy_name']]['warning'];
 		}
 
-		if(	$this->_payload['current_state'] == 'CLOSE')
+		if(	strtolower($this->_payload['current_state']) == 'CLOSE')
 		{
 			$this->status = $this->_config[$this->_payload['policy_name']]['up'];
 		}
