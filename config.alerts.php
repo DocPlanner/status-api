@@ -41,5 +41,3 @@ return [
 
 
 ];
-
-//https://manage.statuspage.io/pages/p5syvnxmpfx6/components/knthfr3t04pg/delete

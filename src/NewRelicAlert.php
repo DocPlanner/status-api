@@ -17,7 +17,9 @@ class NewRelicAlert extends Alert
 			throw new Exception('Incorrect payload');
 		}
 
+		$this->_log(json_encode($this->_payload));
 		$this->_parsePayload();
+		$this->_log(json_encode($this));
 	}
 
 	private function _parsePayload()
@@ -49,5 +51,14 @@ class NewRelicAlert extends Alert
 		}
 
 	}
+
+	private function _log($msg)
+	{
+		$log = new \Monolog\Logger('new_relic_alert');
+		$log->pushHandler(new \Monolog\Handler\StreamHandler('log/new_relic_alert.log'));
+		$log->addInfo($msg);
+
+	}
+
 
 }
