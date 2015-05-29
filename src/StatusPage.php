@@ -45,7 +45,7 @@ class StatusPage
 		$response = $this->_httpClient->post(Config::STATUS_PAGE_PAGE_ID .'/incidents.json', [
 			'debug' => self::DEBUG,
 			'form_params' => [
-				'incident[name]' 			=> $this->_alert->component . ' -  '. $this->_alert->info  .' ['. $this->_alert->status .']',
+				'incident[name]' 			=> $this->_alert->component . ($this->_alert->info ? ' -  '. $this->_alert->info : ''),
 				'incident[status]' 			=> 'investigating',
 				'incident[component_ids][]'	=> $this->_alert->component_id,
 
