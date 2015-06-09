@@ -10,7 +10,7 @@ require 'vendor/autoload.php';
 
 $app = new \Slim\Slim();
 
-$app->post('/webhook', function() use ($app) {
+$app->post('/webhook/newrelic', function() use ($app) {
 
 	$configAlerts = require_once 'config.alerts.php';
 
@@ -20,6 +20,18 @@ $app->post('/webhook', function() use ($app) {
 	$statusPage = new StatusPage($newRelicAlert);
 	$statusPage->update();
 
+
+});
+
+$app->get('/webhook/pingdom', function() use ($app) {
+
+	$configAlerts = require_once 'config.alerts.php';
+
+	$pingdomAlert = new PingdomAlert($configAlerts['Pingdom']);
+	$pingdomAlert->setPayload($app->request()->get('message'));
+
+	$statusPage = new StatusPage($pingdomAlert);
+	$statusPage->update();
 
 });
 

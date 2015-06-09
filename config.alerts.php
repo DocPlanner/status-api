@@ -31,11 +31,48 @@ return [
 			'down'			=> 'major_outage',
 			'warning'		=> 'partial_outage',
 		],
-		'New Relic Alert - Test Policy' => [
-			'component_id'	=> 'knthfr3t04pg',
+	],
+
+	'Pingdom'	=> [
+		'Chile'	=> [
+			'component_id' 	=> 'q777tcg6mwg3',
+			'component'		=> 'DocPlanner Website',
 			'up'			=> 'operational',
 			'down'			=> 'major_outage',
 			'warning'		=> 'partial_outage',
+			'aggregate'		=> '1800',
+		],
+		'Poland'	=> [
+			'component_id' 	=> 'q777tcg6mwg3',
+			'component'		=> 'DocPlanner Website',
+			'up'			=> 'operational',
+			'down'			=> 'major_outage',
+			'warning'		=> 'partial_outage',
+			'aggregate'		=> '1800',
+		],
+		'Russia'	=> [
+			'component_id' 	=> 'q777tcg6mwg3',
+			'component'		=> 'DocPlanner Website',
+			'up'			=> 'operational',
+			'down'			=> 'major_outage',
+			'warning'		=> 'partial_outage',
+			'aggregate'		=> '1800',
+		],
+		'Turkey'	=> [
+			'component_id' 	=> 'q777tcg6mwg3',
+			'component'		=> 'DocPlanner Website',
+			'up'			=> 'operational',
+			'down'			=> 'major_outage',
+			'warning'		=> 'partial_outage',
+			'aggregate'		=> '1800',
+		],
+		'Czech Republic'	=> [
+			'component_id' 	=> 'q777tcg6mwg3',
+			'component'		=> 'DocPlanner Website',
+			'up'			=> 'operational',
+			'down'			=> 'major_outage',
+			'warning'		=> 'partial_outage',
+			'aggregate'		=> '1800',
 		],
 	],
 

@@ -42,15 +42,45 @@ class StatusPage
 
 	private function _createIncident()
 	{
+		$incidentName = $this->_alert->component . ($this->_alert->info ? ' - '. $this->_alert->info : '');
+
+		$this->_alert->aggregate = 30;
+
+		if(isset($this->_alert->aggregate))
+		{
+			$incidents = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/incidents/unresolved.json')->getBody()->getContents(), true);
+
+			foreach($incidents as $incident)
+			{
+				if (stristr($incident['name'], $this->_alert->component) && strtotime($incident['created_at'])+$this->_alert->aggregate > time())
+				{
+					$this->_log('Incident '. $incidentName .' not created due to aggregation rule.');
+					return false;
+				}
+			}
+		}
+
 		$response = $this->_httpClient->post(Config::STATUS_PAGE_PAGE_ID .'/incidents.json', [
 			'debug' => self::DEBUG,
 			'form_params' => [
-				'incident[name]' 			=> $this->_alert->component . ($this->_alert->info ? ' -  '. $this->_alert->info : ''),
+				'incident[name]' 			=> $incidentName,
 				'incident[status]' 			=> 'investigating',
 				'incident[component_ids][]'	=> $this->_alert->component_id,
 
 			]
 		]);
+
+		$this->_log('Incident '. $incidentName .' created.');
+
+		return true;
+	}
+
+	private function _log($msg)
+	{
+		$log = new \Monolog\Logger('status_page');
+		$log->pushHandler(new \Monolog\Handler\StreamHandler('log/status_page.log'));
+		$log->addInfo($msg);
+
 	}
 
 }

@@ -12,6 +12,7 @@ class Alert
 	public $component_id;
 	public $status;
 	public $info;
+	public $aggregate;
 
 	public function __construct($config)
 	{
