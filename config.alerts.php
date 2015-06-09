@@ -74,6 +74,14 @@ return [
 			'warning'		=> 'partial_outage',
 			'aggregate'		=> '1800',
 		],
+		'Hungary'	=> [
+			'component_id' 	=> 'q777tcg6mwg3',
+			'component'		=> 'DocPlanner Website',
+			'up'			=> 'operational',
+			'down'			=> 'major_outage',
+			'warning'		=> 'partial_outage',
+			'aggregate'		=> '1800',
+		],
 	],
 
 
