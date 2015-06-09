@@ -44,8 +44,6 @@ class StatusPage
 	{
 		$incidentName = $this->_alert->component . ($this->_alert->info ? ' - '. $this->_alert->info : '');
 
-		$this->_alert->aggregate = 30;
-
 		if(isset($this->_alert->aggregate))
 		{
 			$incidents = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/incidents/unresolved.json')->getBody()->getContents(), true);
