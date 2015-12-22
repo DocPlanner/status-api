@@ -15,17 +15,18 @@ class StatusPage
 	private $_httpClient;
 	private $_alert;
 
-	public function __construct(Alert $alert)
+	public function __construct()
 	{
-		$this->_alert = $alert;
 		$this->_httpClient = new GuzzleHttp\Client(['base_uri' => self::URL,
 										 			'headers' => [
 											 			'Authorization' => 'OAuth '. Config::STATUS_PAGE_API_KEY]]);
 
 	}
 
-	public function update()
+	public function update(Alert $alert)
 	{
+		$this->_alert = $alert;
+
 		$response = $this->_httpClient->patch(Config::STATUS_PAGE_PAGE_ID .'/components/'. $this->_alert->component_id .'.json', [
 			'debug' => self::DEBUG,
 			'form_params' => [
@@ -33,11 +34,27 @@ class StatusPage
 			]
 		]);
 
-		if($this->_alert->status == 'major_outage')
+		if(Config::STATUS_PAGE_ENABLE_INCIDENTS && $this->_alert->status == 'major_outage')
 		{
 			$this->_createIncident();
 		}
 
+	}
+
+	public function getUnresolvedIncidents()
+	{
+		$unresolvedIncidents = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/incidents/unresolved.json')->getBody()->getContents(), true);
+
+		foreach($unresolvedIncidents as $unresolvedIncident)
+		{
+			try {
+				$this->_httpClient->delete(Config::STATUS_PAGE_PAGE_ID .'/incidents/'. $unresolvedIncident['id'] .'.json');
+			}
+			catch(Exception $e) {}
+
+			sleep(1);
+
+		}
 	}
 
 	private function _createIncident()

@@ -17,8 +17,8 @@ $app->post('/webhook/newrelic', function() use ($app) {
 	$newRelicAlert = new NewRelicAlert($configAlerts['NewRelic']);
 	$newRelicAlert->setPayload($app->request()->getBody());
 
-	$statusPage = new StatusPage($newRelicAlert);
-	$statusPage->update();
+	$statusPage = new StatusPage();
+	$statusPage->update($newRelicAlert);
 
 
 });
@@ -30,8 +30,16 @@ $app->get('/webhook/pingdom', function() use ($app) {
 	$pingdomAlert = new PingdomAlert($configAlerts['Pingdom']);
 	$pingdomAlert->setPayload($app->request()->get('message'));
 
-	$statusPage = new StatusPage($pingdomAlert);
-	$statusPage->update();
+	$statusPage = new StatusPage();
+	$statusPage->update($pingdomAlert);
+
+});
+
+$app->get('/clear-incidents', function() use ($app) {
+
+	$statusPage = new StatusPage();
+	$statusPage->getUnresolvedIncidents();
+
 
 });
 
