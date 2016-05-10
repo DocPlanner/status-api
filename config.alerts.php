@@ -42,6 +42,9 @@ return [
 			'warning'		=> 'partial_outage',
 			'aggregate'		=> '1800',
 		],
+		'Bulgaria' => [
+
+		],
 		'Poland'	=> [
 			'component_id' 	=> 'q777tcg6mwg3',
 			'component'		=> 'DocPlanner Website',

@@ -31,6 +31,8 @@ class PingdomAlert extends Alert
 			throw new Exception('There is no config for Checkname');
 		}
 
+		$this->name			= $this->_payload['checkname'];
+		$this->status		= $this->_payload['description'];
 		$this->component 	= $this->_config[$this->_payload['checkname']]['component'];
 		$this->component_id = $this->_config[$this->_payload['checkname']]['component_id'];
 		$this->info 		= 'down! (first noticed in: '. $this->_payload['checkname'] .')';
