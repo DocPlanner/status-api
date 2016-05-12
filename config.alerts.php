@@ -86,6 +86,9 @@ return [
 			'aggregate'		=> '1800',
 		],
 	],
+	'Integrations' => [
+
+	],
 
 
 ];

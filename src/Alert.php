@@ -9,6 +9,7 @@ class Alert
 	protected $_config = [];
 
 	public $name;
+	public $group;
 	public $component;
 	public $component_id;
 	public $status;

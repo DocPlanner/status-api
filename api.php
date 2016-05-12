@@ -30,9 +30,21 @@ $app->get('/webhook/pingdom', function() use ($app) {
 	$pingdomAlert = new PingdomAlert($configAlerts['Pingdom']);
 	$pingdomAlert->setPayload($app->request()->get('message'));
 
-	(new StatusPage())->update($pingdomAlert);
+	//(new StatusPage())->update($pingdomAlert);
 
 	(new Cachet())->update($pingdomAlert);
+
+});
+
+$app->post('/webhook/integrations', function() use ($app) {
+
+	$configAlerts = require_once 'config.alerts.php';
+
+	$integrationsAlert = new IntegrationsAlert($configAlerts['Integrations']);
+	$integrationsAlert->setPayload($app->request()->getBody());
+
+
+	(new Cachet())->update($integrationsAlert);
 
 });
 

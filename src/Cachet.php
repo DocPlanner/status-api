@@ -22,7 +22,7 @@ class Cachet
 
 	public function update(Alert $alert)
 	{
-		$componentId = $this->getComponentIdByName($alert->name);
+		$componentId = $this->getComponentIdByName($alert->name, $alert->group);
 
 		if($componentId)
 		{
@@ -36,24 +36,70 @@ class Cachet
 		}
 		else
 		{
+			$groupId = 0;
+			if($alert->group)
+			{
+				$groupId = $this->getGroupIdByName($alert->group);
+				if(!$groupId)
+				{
+					$response = $this->_httpClient->post('/api/v1/components/groups', [
+						'debug'       => self::DEBUG,
+						'form_params' => [
+							'name'		=> $alert->group,
+							'collapsed'	=> '1',
+							'order'		=> time(),
+						]
+					]);
+
+					$groupId = json_decode($response->getBody()->getContents(), true)['data']['id'];
+				}
+			}
+
 			$response = $this->_httpClient->post('/api/v1/components', [
 				'debug'       => self::DEBUG,
 				'form_params' => [
 					'name'		=> $alert->name,
+					'group_id'	=> $groupId,
 					'status' 	=> ($alert->status == 'up' ? 1 : 4),
 				]
 			]);
 		}
 	}
 
-	private function getComponentIdByName($name)
+	private function getComponentIdByName($name, $group)
 	{
-		$response = $this->_httpClient->get('/api/v1/components', ['debug' => self::DEBUG]);
-		foreach(json_decode($response->getBody()->getContents(), true)['data'] as $component)
+		$groupId = null;
+		if($group)
 		{
-			if($component['name'] == $name)
+			$groupId = $this->getGroupIdByName($group);
+		}
+
+		$response = $this->_httpClient->get('/api/v1/components', ['debug' => self::DEBUG]);
+		$components = json_decode($response->getBody()->getContents(), true)['data'];
+		if(count($components) < 1)
+		{
+			return null;
+		}
+
+		foreach($components as $component)
+		{
+			if($component['name'] == $name && $component['group_id'] == (int) $groupId)
 			{
 				return $component['id'];
+			}
+		}
+
+		return null;
+	}
+
+	private function getGroupIdByName($name)
+	{
+		$response = $this->_httpClient->get('/api/v1/components/groups', ['debug' => self::DEBUG]);
+		foreach(json_decode($response->getBody()->getContents(), true)['data'] as $group)
+		{
+			if($group['name'] == $name)
+			{
+				return $group['id'];
 			}
 		}
 
