@@ -32,6 +32,7 @@ class PingdomAlert extends Alert
 		}
 
 		$this->name			= $this->_payload['checkname'];
+		$this->group		= 'Web';
 		$this->status		= $this->_payload['description'];
 		$this->component 	= $this->_config[$this->_payload['checkname']]['component'];
 		$this->component_id = $this->_config[$this->_payload['checkname']]['component_id'];
