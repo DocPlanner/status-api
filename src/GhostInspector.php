@@ -17,7 +17,7 @@ class GhostInspector
 
 	public function getGeckoView()
 	{
-		$testResults = ['failed' => 0, 'screen failed' => 0, 'passed' => 0];
+		$testResults = ['failed' => 0, 'failed screen' => 0, 'passed' => 0];
 
 		$tests = $this->getTests();
 		foreach($tests as $test)
@@ -33,7 +33,7 @@ class GhostInspector
 
 			if ($test['screenshotComparePassing'] != 1)
 			{
-				$testResults['screen failed']++;
+				$testResults['failed screen']++;
 			}
 		}
 
