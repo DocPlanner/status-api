@@ -17,7 +17,7 @@ class GhostInspector
 
 	public function getGeckoView()
 	{
-		$testResults = ['passed' => 0, 'screen failed' => 0, 'failed' => 0];
+		$testResults = ['failed' => 0, 'screen failed' => 0, 'passed' => 0];
 
 		$tests = $this->getTests();
 		foreach($tests as $test)
