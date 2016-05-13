@@ -71,7 +71,7 @@ class Cachet
 		$groupId = null;
 		if($group)
 		{
-			$groupId = $this->getGroupIdByName($group);
+			return $this->getComponentIdByFromGroup($group, $name);
 		}
 
 		$response = $this->_httpClient->get('/api/v1/components', ['debug' => self::DEBUG]);
@@ -92,9 +92,33 @@ class Cachet
 		return null;
 	}
 
+	private function getComponentIdByFromGroup($groupName, $componentName)
+	{
+		$response = $this->_httpClient->get('/api/v1/components/groups?per_page=1000', ['debug' => self::DEBUG]);
+		foreach(json_decode($response->getBody()->getContents(), true)['data'] as $group)
+		{
+			if($group['name'] == $groupName)
+			{
+				if(count($group['enabled_components']) > 0)
+				{
+					foreach ($group['enabled_components'] as $component)
+					{
+						if($component['name'] == $componentName)
+						{
+							return $component['id'];
+						}
+					}
+				}
+				return null;
+			}
+		}
+
+		return null;
+	}
+
 	private function getGroupIdByName($name)
 	{
-		$response = $this->_httpClient->get('/api/v1/components/groups', ['debug' => self::DEBUG]);
+		$response = $this->_httpClient->get('/api/v1/components/groups?per_page=1000', ['debug' => self::DEBUG]);
 		foreach(json_decode($response->getBody()->getContents(), true)['data'] as $group)
 		{
 			if($group['name'] == $name)
