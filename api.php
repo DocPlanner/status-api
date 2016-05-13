@@ -48,6 +48,12 @@ $app->post('/webhook/integrations', function() use ($app) {
 
 });
 
+$app->get('/geckoboard/ghostinspector', function() use ($app) {
+
+	(new GhostInspector())->getGeckoView();
+
+});
+
 $app->get('/clear-incidents', function() use ($app) {
 
 	$statusPage = new StatusPage();

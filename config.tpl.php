@@ -10,4 +10,6 @@ class Config
 	const STATUS_PAGE_PAGE_ID 	= 'p5syvnxmpfx6';
 
 	const CACHET_API_KEY 		= '';
+
+	const GHOST_INSPECTOR_API_KEY = '';
 }
