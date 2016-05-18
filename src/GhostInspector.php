@@ -31,7 +31,7 @@ class GhostInspector
 				$testResults['failed']++;
 			}
 
-			if ($test['screenshotComparePassing'] != 1)
+			if ($test['screenshotCompareEnabled'] == true && $test['screenshotComparePassing'] != true)
 			{
 				$testResults['failed screen']++;
 			}
