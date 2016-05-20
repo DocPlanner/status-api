@@ -28,7 +28,7 @@ class IntegrationsAlert extends Alert
 		$this->status	= $this->_payload['status'] == 1 ? 'up' : 'down';
 		$this->group	= $this->_payload['integration'];
 
-		if ($this->_payload['url'] && !preg_match("~^(?:f|ht)tps?://~i", $this->_payload['url']))
+		if (isset($this->_payload['url']) && !preg_match("~^(?:f|ht)tps?://~i", $this->_payload['url']))
 		{
 			$this->_payload['url'] = "http://" . $this->_payload['url'];
 		}
