@@ -61,6 +61,7 @@ class Cachet
 					'name'		=> $alert->name,
 					'group_id'	=> $groupId,
 					'status' 	=> ($alert->status == 'up' ? 1 : 4),
+					'link'		=> $alert->url,
 				]
 			]);
 		}

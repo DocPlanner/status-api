@@ -27,6 +27,13 @@ class IntegrationsAlert extends Alert
 		$this->name		= $this->_payload['check'];
 		$this->status	= $this->_payload['status'] == 1 ? 'up' : 'down';
 		$this->group	= $this->_payload['integration'];
+
+		if ($this->_payload['url'] && !preg_match("~^(?:f|ht)tps?://~i", $this->_payload['url']))
+		{
+			$this->_payload['url'] = "http://" . $this->_payload['url'];
+		}
+
+		$this->url		= isset($this->_payload['url']) ? $this->_payload['url'] : null;
 	}
 
 	private function _log($msg)

@@ -10,6 +10,7 @@ class Alert
 
 	public $name;
 	public $group;
+	public $url;
 	public $component;
 	public $component_id;
 	public $status;
