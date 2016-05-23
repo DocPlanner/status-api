@@ -6,6 +6,9 @@
 
 class Cachet
 {
+	const STATUS_UP 	= 1;
+	const STATUS_DOWN 	= 4;
+
 	const URL = 'http://integrations.docplanner.io';
 	const DEBUG = false;
 
@@ -22,6 +25,8 @@ class Cachet
 
 	public function update(Alert $alert)
 	{
+		$status = $alert->status == 'up' || $alert->status == 'operational' ? self::STATUS_UP : self::STATUS_DOWN;
+
 		$componentId = $this->getComponentIdByName($alert->name, $alert->group);
 
 		if($componentId)
@@ -30,7 +35,7 @@ class Cachet
 				'debug'       => self::DEBUG,
 				'form_params' => [
 					'id'   		=> $componentId,
-					'status' 	=> ($alert->status == 'up' ? 1 : 4),
+					'status' 	=> $status,
 					'link'		=> $alert->url,
 				]
 			]);
@@ -61,7 +66,7 @@ class Cachet
 				'form_params' => [
 					'name'		=> $alert->name,
 					'group_id'	=> $groupId,
-					'status' 	=> ($alert->status == 'up' ? 1 : 4),
+					'status' 	=> $status,
 					'link'		=> $alert->url,
 				]
 			]);
