@@ -31,6 +31,7 @@ class Cachet
 				'form_params' => [
 					'id'   		=> $componentId,
 					'status' 	=> ($alert->status == 'up' ? 1 : 4),
+					'link'		=> $alert->url,
 				]
 			]);
 		}
