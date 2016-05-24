@@ -31,7 +31,7 @@ $app->get('/webhook/pingdom', function() use ($app) {
 	$pingdomAlert->setPayload($app->request()->get('message'));
 
 	(new StatusPage())->update($pingdomAlert);
-	(new Cachet())->update($pingdomAlert);
+	(new Cachet())->updateComponent($pingdomAlert);
 
 });
 
@@ -43,7 +43,7 @@ $app->post('/webhook/integrations', function() use ($app) {
 	$integrationsAlert->setPayload($app->request()->getBody());
 
 
-	(new Cachet())->update($integrationsAlert);
+	(new Cachet())->updateComponent($integrationsAlert);
 
 });
 

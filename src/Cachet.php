@@ -4,6 +4,12 @@
  * Date: 10.05.2016 12:34
  */
 
+use Damianopetrungaro\CachetSDK\CachetClient;
+use Damianopetrungaro\CachetSDK\Components\ComponentActions;
+use Damianopetrungaro\CachetSDK\Components\ComponentFactory;
+use Damianopetrungaro\CachetSDK\Groups\GroupActions;
+use Damianopetrungaro\CachetSDK\Groups\GroupFactory;
+
 class Cachet
 {
 	const STATUS_UP 	= 1;
@@ -13,76 +19,79 @@ class Cachet
 	const DEBUG = false;
 
 	private $_httpClient;
+	/** @var CachetClient */
+	private $client;
+	/** @var ComponentActions  */
+	private $componentManager;
+	/** @var GroupActions  */
+	private $groupManager;
 
 	public function __construct()
 	{
-		$this->_httpClient = new GuzzleHttp\Client(['base_uri' => self::URL,
-													'headers' => [
-														'Content-Type'	=> 'application/json',
-														'X-Cachet-Token' => Config::CACHET_API_KEY]]);
-
+		$this->client 			= new CachetClient('http://integrations.docplanner.io/api/v1/', Config::CACHET_API_KEY);
+		$this->componentManager = ComponentFactory::build($this->client);
+		$this->groupManager 	= GroupFactory::build($this->client);
 	}
 
-	public function update(Alert $alert)
+	/**
+	 * @param Alert $alert
+	 */
+	public function updateComponent(Alert $alert)
 	{
-		$status = $alert->status == 'up' || $alert->status == 'operational' ? self::STATUS_UP : self::STATUS_DOWN;
-
 		$componentId = $this->getComponentIdByName($alert->name, $alert->group);
 
 		if($componentId)
 		{
-			$response = $this->_httpClient->put('/api/v1/components/'.$componentId , [
-				'debug'       => self::DEBUG,
-				'form_params' => [
-					'id'   		=> $componentId,
-					'status' 	=> $status,
-					'link'		=> $alert->url,
-				]
-			]);
+			$this->componentManager->updateComponent($componentId, ['status'	=> $this->translateStatus($alert),
+																	'link' 		=> $alert->url]);
 		}
 		else
 		{
-			$groupId = 0;
-			if($alert->group)
-			{
-				$groupId = $this->getGroupIdByName($alert->group);
-				if(!$groupId)
-				{
-					$response = $this->_httpClient->post('/api/v1/components/groups', [
-						'debug'       => self::DEBUG,
-						'form_params' => [
-							'name'		=> $alert->group,
-							'collapsed'	=> '1',
-							'order'		=> time(),
-						]
-					]);
-
-					$groupId = json_decode($response->getBody()->getContents(), true)['data']['id'];
-				}
-			}
-
-			$response = $this->_httpClient->post('/api/v1/components', [
-				'debug'       => self::DEBUG,
-				'form_params' => [
-					'name'		=> $alert->name,
-					'group_id'	=> $groupId,
-					'status' 	=> $status,
-					'link'		=> $alert->url,
-				]
-			]);
+			$this->createComponent($alert);
 		}
 	}
 
-	private function getComponentIdByName($name, $group)
+	/**
+	 * @param Alert $alert
+	 */
+	public function createComponent(Alert $alert)
 	{
-		$groupId = null;
-		if($group)
+		$groupId = 0;
+
+		if ($alert->group)
 		{
-			return $this->getComponentIdByFromGroup($group, $name);
+			$groupId = $this->getGroupIdByName($alert->group);
+			if (!$groupId)
+			{
+				$response = $this->groupManager->storeGroup(['name' 		=> $alert->group,
+															 'collapsed' 	=> '1',
+															 'order' => time()]);
+
+				$groupId = $response['data']['id'];
+			}
 		}
 
-		$response = $this->_httpClient->get('/api/v1/components', ['debug' => self::DEBUG]);
-		$components = json_decode($response->getBody()->getContents(), true)['data'];
+		$this->componentManager->storeComponent([
+				'name'     => $alert->name,
+				'group_id' => $groupId,
+				'status'   => $this->translateStatus($alert),
+				'link'     => $alert->url,
+		]);
+
+	}
+
+	private function getComponentIdByName($componentName, $groupName)
+	{
+		$groupId = null;
+
+		if($groupName)
+		{
+			return $this->getComponentIdByFromGroup($groupName, $componentName);
+		}
+
+		$response = $this->componentManager->indexComponents();
+		$components = $response['data'];
+
 		if(count($components) < 1)
 		{
 			return null;
@@ -90,7 +99,7 @@ class Cachet
 
 		foreach($components as $component)
 		{
-			if($component['name'] == $name && $component['group_id'] == (int) $groupId)
+			if($component['name'] == $componentName && $component['group_id'] == (int) $groupId)
 			{
 				return $component['id'];
 			}
@@ -101,8 +110,8 @@ class Cachet
 
 	private function getComponentIdByFromGroup($groupName, $componentName)
 	{
-		$response = $this->_httpClient->get('/api/v1/components/groups?per_page=1000', ['debug' => self::DEBUG]);
-		foreach(json_decode($response->getBody()->getContents(), true)['data'] as $group)
+		$response = $this->groupManager->indexGroups(1000);
+		foreach($response['data'] as $group)
 		{
 			if($group['name'] == $groupName)
 			{
@@ -123,12 +132,12 @@ class Cachet
 		return null;
 	}
 
-	private function getGroupIdByName($name)
+	private function getGroupIdByName($groupName)
 	{
-		$response = $this->_httpClient->get('/api/v1/components/groups?per_page=1000', ['debug' => self::DEBUG]);
-		foreach(json_decode($response->getBody()->getContents(), true)['data'] as $group)
+		$response = $this->groupManager->indexGroups(1000);
+		foreach($response['data'] as $group)
 		{
-			if($group['name'] == $name)
+			if($group['name'] == $groupName)
 			{
 				return $group['id'];
 			}
@@ -137,5 +146,14 @@ class Cachet
 		return null;
 	}
 
+	/**
+	 * @param Alert $alert
+	 *
+	 * @return int
+	 */
+	private function translateStatus(Alert $alert)
+	{
+		return $alert->status == 'up' || $alert->status == 'operational' ? self::STATUS_UP : self::STATUS_DOWN;
+	}
 
 }
