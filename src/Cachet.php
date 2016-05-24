@@ -41,27 +41,46 @@ class Cachet
 	 */
 	public function trigger(Alert $alert)
 	{
-		$componentId = $this->getComponentIdByName($alert->name, $alert->group);
+		$alert->component_id = $this->getComponentIdByName($alert->name, $alert->group);
 
-		if($componentId)
+		if($alert->component_id)
 		{
-			$this->updateComponent($alert, $componentId);
+			$this->updateComponent($alert);
 		}
 		else {
 			$this->createComponent($alert);
 		}
 
+		$this->triggerIncident($alert);
+	}
 
+	private function triggerIncident(Alert $alert)
+	{
+		if(!$alert->component_id)
+		{
+			throw new Exception('Component ID undefined');
+		}
+
+		if($this->translateStatus($alert) == self::STATUS_DOWN)
+		{
+			$this->incidentManager->storeIncident([
+					'name'             => ' integration',
+					'message'          => 'Integration has failed to report',
+					'status'           => 1,
+					'visible'          => true,
+					'component_id'     => $alert->component_id,
+					'component_status' => $this->translateStatus($alert)
+			]);
+		}
 	}
 
 	/**
 	 * @param Alert $alert
-	 * @param       $componentId
 	 */
-	private function updateComponent(Alert $alert, $componentId)
+	private function updateComponent(Alert $alert)
 	{
-		$this->componentManager->updateComponent($componentId, ['status'	=> $this->translateStatus($alert),
-																'link' 		=> $alert->url]);
+		$this->componentManager->updateComponent($alert->component_id, ['status'	=> $this->translateStatus($alert),
+																		'link' 		=> $alert->url]);
 	}
 
 	/**
@@ -83,12 +102,14 @@ class Cachet
 			}
 		}
 
-		$this->componentManager->storeComponent([
+		$response = $this->componentManager->storeComponent([
 				'name'     => $alert->name,
 				'group_id' => $alert->group_id,
 				'status'   => $this->translateStatus($alert),
 				'link'     => $alert->url,
 		]);
+
+		$alert->component_id = $response['data']['id'];
 
 	}
 
