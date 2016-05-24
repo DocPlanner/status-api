@@ -43,7 +43,7 @@ $app->post('/webhook/integrations', function() use ($app) {
 	$integrationsAlert->setPayload($app->request()->getBody());
 
 
-	(new Cachet())->updateComponent($integrationsAlert);
+	(new Cachet())->trigger($integrationsAlert);
 
 });
 

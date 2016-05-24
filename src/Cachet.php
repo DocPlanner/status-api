@@ -9,71 +9,83 @@ use Damianopetrungaro\CachetSDK\Components\ComponentActions;
 use Damianopetrungaro\CachetSDK\Components\ComponentFactory;
 use Damianopetrungaro\CachetSDK\Groups\GroupActions;
 use Damianopetrungaro\CachetSDK\Groups\GroupFactory;
+use Damianopetrungaro\CachetSDK\Incidents\IncidentActions;
+use Damianopetrungaro\CachetSDK\Incidents\IncidentFactory;
 
 class Cachet
 {
+	const URL 			= 'http://integrations.docplanner.io/api/v1/';
+
 	const STATUS_UP 	= 1;
 	const STATUS_DOWN 	= 4;
 
-	const URL = 'http://integrations.docplanner.io';
-	const DEBUG = false;
-
-	private $_httpClient;
 	/** @var CachetClient */
 	private $client;
 	/** @var ComponentActions  */
 	private $componentManager;
 	/** @var GroupActions  */
 	private $groupManager;
+	/** @var IncidentActions  */
+	private $incidentManager;
 
 	public function __construct()
 	{
-		$this->client 			= new CachetClient('http://integrations.docplanner.io/api/v1/', Config::CACHET_API_KEY);
+		$this->client 			= new CachetClient(self::URL, Config::CACHET_API_KEY);
 		$this->componentManager = ComponentFactory::build($this->client);
 		$this->groupManager 	= GroupFactory::build($this->client);
+		$this->incidentManager	= IncidentFactory::build($this->client);
 	}
 
 	/**
 	 * @param Alert $alert
 	 */
-	public function updateComponent(Alert $alert)
+	public function trigger(Alert $alert)
 	{
 		$componentId = $this->getComponentIdByName($alert->name, $alert->group);
 
 		if($componentId)
 		{
-			$this->componentManager->updateComponent($componentId, ['status'	=> $this->translateStatus($alert),
-																	'link' 		=> $alert->url]);
+			$this->updateComponent($alert, $componentId);
 		}
-		else
-		{
+		else {
 			$this->createComponent($alert);
 		}
+
+
+	}
+
+	/**
+	 * @param Alert $alert
+	 * @param       $componentId
+	 */
+	private function updateComponent(Alert $alert, $componentId)
+	{
+		$this->componentManager->updateComponent($componentId, ['status'	=> $this->translateStatus($alert),
+																'link' 		=> $alert->url]);
 	}
 
 	/**
 	 * @param Alert $alert
 	 */
-	public function createComponent(Alert $alert)
+	private function createComponent(Alert $alert)
 	{
-		$groupId = 0;
-
 		if ($alert->group)
 		{
-			$groupId = $this->getGroupIdByName($alert->group);
-			if (!$groupId)
+			$alert->group_id = $this->getGroupIdByName($alert->group);
+
+			if (!$alert->group_id)
 			{
 				$response = $this->groupManager->storeGroup(['name' 		=> $alert->group,
 															 'collapsed' 	=> '1',
-															 'order' => time()]);
+															 'order' 		=> time()]);
 
-				$groupId = $response['data']['id'];
+				$alert->group_id = $response['data']['id'];
 			}
 		}
 
 		$this->componentManager->storeComponent([
 				'name'     => $alert->name,
-				'group_id' => $groupId,
+				'group_id' => $alert->group_id,
 				'status'   => $this->translateStatus($alert),
 				'link'     => $alert->url,
 		]);
@@ -135,6 +147,7 @@ class Cachet
 	private function getGroupIdByName($groupName)
 	{
 		$response = $this->groupManager->indexGroups(1000);
+
 		foreach($response['data'] as $group)
 		{
 			if($group['name'] == $groupName)
