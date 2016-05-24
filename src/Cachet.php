@@ -28,12 +28,15 @@ class Cachet
 	/** @var IncidentActions  */
 	private $incidentManager;
 
-	public function __construct()
+	private $trackIncidents;
+
+	public function __construct($trackIncidents = false)
 	{
 		$this->client 			= new CachetClient(self::URL, Config::CACHET_API_KEY);
 		$this->componentManager = ComponentFactory::build($this->client);
 		$this->groupManager 	= GroupFactory::build($this->client);
 		$this->incidentManager	= IncidentFactory::build($this->client);
+		$this->trackIncidents	= $trackIncidents;
 	}
 
 	/**
@@ -51,7 +54,10 @@ class Cachet
 			$this->createComponent($alert);
 		}
 
-		$this->triggerIncident($alert);
+		if($this->trackIncidents)
+		{
+			$this->triggerIncident($alert);
+		}
 	}
 
 	private function triggerIncident(Alert $alert)
