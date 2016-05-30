@@ -44,9 +44,9 @@ class Cachet
 	 */
 	public function trigger(Alert $alert)
 	{
-		$alert->component_id = $this->getComponentIdByName($alert->name, $alert->group);
+		$alert->component = $this->getComponentByName($alert->name, $alert->group);
 
-		if($alert->component_id)
+		if($alert->component && $this->translateStatus($alert) != $alert->component['status'])
 		{
 			$this->updateComponent($alert);
 		}
@@ -54,7 +54,7 @@ class Cachet
 			$this->createComponent($alert);
 		}
 
-		if($this->trackIncidents)
+		if($this->trackIncidents && $this->translateStatus($alert) != $alert->component['status'])
 		{
 			$this->triggerIncident($alert);
 		}
@@ -62,9 +62,9 @@ class Cachet
 
 	private function triggerIncident(Alert $alert)
 	{
-		if(!$alert->component_id)
+		if(!$alert->component)
 		{
-			throw new Exception('Component ID undefined');
+			throw new Exception('Component undefined');
 		}
 
 		if($this->translateStatus($alert) == self::STATUS_DOWN)
@@ -74,7 +74,7 @@ class Cachet
 					'message'          => 'Integration has failed to report',
 					'status'           => 1,
 					'visible'          => true,
-					'component_id'     => $alert->component_id,
+					'component_id'     => $alert->component['id'],
 					'component_status' => $this->translateStatus($alert)
 			]);
 		}
@@ -85,8 +85,8 @@ class Cachet
 	 */
 	private function updateComponent(Alert $alert)
 	{
-		$this->componentManager->updateComponent($alert->component_id, ['status'	=> $this->translateStatus($alert),
-																		'link' 		=> $alert->url]);
+		$this->componentManager->updateComponent($alert->component['id'], [	'status'	=> $this->translateStatus($alert),
+																			'link' 		=> $alert->url]);
 	}
 
 	/**
@@ -115,11 +115,11 @@ class Cachet
 				'link'     => $alert->url,
 		]);
 
-		$alert->component_id = $response['data']['id'];
+		$alert->component['id'] = $response['data']['id'];
 
 	}
 
-	private function getComponentIdByName($componentName, $groupName)
+	private function getComponentByName($componentName, $groupName)
 	{
 		$groupId = null;
 
@@ -140,7 +140,7 @@ class Cachet
 		{
 			if($component['name'] == $componentName && $component['group_id'] == (int) $groupId)
 			{
-				return $component['id'];
+				return $component;
 			}
 		}
 
@@ -160,7 +160,7 @@ class Cachet
 					{
 						if($component['name'] == $componentName)
 						{
-							return $component['id'];
+							return $component;
 						}
 					}
 				}
@@ -185,6 +185,7 @@ class Cachet
 
 		return null;
 	}
+
 
 	/**
 	 * @param Alert $alert
