@@ -50,7 +50,9 @@ class Cachet
 		{
 			$this->updateComponent($alert);
 		}
-		else {
+
+		if(!$alert->component)
+		{
 			$this->createComponent($alert);
 		}
 
