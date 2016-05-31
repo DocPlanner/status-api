@@ -117,7 +117,8 @@ class Cachet
 				'link'     => $alert->url,
 		]);
 
-		$alert->component['id'] = $response['data']['id'];
+		$alert->component['id'] 	= $response['data']['id'];
+		$alert->component['status'] = $this->translateStatus($alert);
 
 	}
 
