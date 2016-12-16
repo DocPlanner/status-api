@@ -72,7 +72,7 @@ class Cachet
 		if($this->translateStatus($alert) == self::STATUS_DOWN)
 		{
 			$this->incidentManager->storeIncident([
-					'name'             => ' integration',
+					'name'             => $alert->name,
 					'message'          => 'Integration has failed to report',
 					'status'           => 1,
 					'visible'          => true,
