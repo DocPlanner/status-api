@@ -12,4 +12,11 @@ class Config
 	const CACHET_API_KEY 		= '';
 
 	const GHOST_INSPECTOR_API_KEY = '';
+
+	const AQMP_HOST  = '';
+	const AMQP_PORT  = '';
+	const AMQP_USER  = '';
+	const AMQP_PASS  = '';
+	const AQMP_VHOST = '';
+
 }

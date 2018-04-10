@@ -1,9 +1,10 @@
 {
     "require": {
         "slim/slim": "^2.6",
-        "guzzlehttp/guzzle": "~6.2",
+        "guzzlehttp/guzzle": "6.3",
         "monolog/monolog": "^1.13",
-        "damianopetrungaro/cachet-sdk": "^1.0"
+        "damianopetrungaro/cachet-sdk": "^1.0",
+        "php-amqplib/php-amqplib": "^2.7"
     },
 
     "autoload": {

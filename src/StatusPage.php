@@ -15,11 +15,30 @@ class StatusPage
 	private $_httpClient;
 	private $_alert;
 
+	private $_aggregateIncidentsTime = 3600;
+
 	public function __construct()
 	{
 		$this->_httpClient = new GuzzleHttp\Client(['base_uri' => self::URL,
 										 			'headers' => [
 											 			'Authorization' => 'OAuth '. Config::STATUS_PAGE_API_KEY]]);
+
+	}
+
+	private function _getComponentForAlert(Alert $alert)
+	{
+		$components = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/components.json')->getBody()->getContents(), true);
+
+
+		foreach($components as $component)
+		{
+			if($component['id'] == $alert->component_id)
+			{
+				return $component;
+			}
+		}
+
+		return false;
 
 	}
 
@@ -36,7 +55,7 @@ class StatusPage
 
 		if(Config::STATUS_PAGE_ENABLE_INCIDENTS && $this->_alert->status == 'major_outage')
 		{
-			$this->_createIncident();
+			$this->_createIncident($alert);
 		}
 
 	}
@@ -57,35 +76,32 @@ class StatusPage
 		}
 	}
 
-	private function _createIncident()
+	private function _createIncident(Alert $alert)
 	{
-		$incidentName = $this->_alert->component . ($this->_alert->info ? ' - '. $this->_alert->info : '');
+		$component     = $this->_getComponentForAlert($alert);
+		$componentType = trim(explode(':', $component['name'])[0]);
 
-		if(isset($this->_alert->aggregate))
+		$incidents = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/incidents/unresolved.json')->getBody()->getContents(), true);
+
+		foreach($incidents as $incident)
 		{
-			$incidents = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/incidents/unresolved.json')->getBody()->getContents(), true);
-
-			foreach($incidents as $incident)
+			if (stristr($incident['name'], $componentType) && strtotime($incident['created_at']) + $this->_aggregateIncidentsTime > time())
 			{
-				if (stristr($incident['name'], $this->_alert->component) && strtotime($incident['created_at'])+$this->_alert->aggregate > time())
-				{
-					$this->_log('Incident '. $incidentName .' not created due to aggregation rule.');
-					return false;
-				}
+				$this->_log('Incident for component '. $component['name'] .' not created due to aggregation rule.');
+				return false;
 			}
 		}
 
 		$response = $this->_httpClient->post(Config::STATUS_PAGE_PAGE_ID .'/incidents.json', [
 			'debug' => self::DEBUG,
 			'form_params' => [
-				'incident[name]' 			=> $incidentName,
+				'incident[name]' 			=> $componentType . ' is having trouble',
 				'incident[status]' 			=> 'investigating',
 				'incident[component_ids][]'	=> $this->_alert->component_id,
-
 			]
 		]);
 
-		$this->_log('Incident '. $incidentName .' created.');
+		$this->_log('Incident for component '. $component['name'] .' created.');
 
 		return true;
 	}

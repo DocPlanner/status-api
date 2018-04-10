@@ -17,6 +17,7 @@ class Alert
 	public $status;
 	public $info;
 	public $aggregate;
+	public $created_at;
 
 	public function __construct($config)
 	{

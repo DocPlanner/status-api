@@ -23,15 +23,16 @@ $app->post('/webhook/newrelic', function() use ($app) {
 
 });
 
-$app->get('/webhook/pingdom', function() use ($app) {
+$app->post('/webhook/pingdom', function() use ($app) {
 
 	$configAlerts = require_once 'config.alerts.php';
 
 	$pingdomAlert = new PingdomAlert($configAlerts['Pingdom']);
-	$pingdomAlert->setPayload($app->request()->get('message'));
 
-	(new StatusPage())->update($pingdomAlert);
-	(new Cachet())->trigger($pingdomAlert);
+	$pingdomAlert->setPayload($app->request()->getBody());
+
+	$amqp = new AMQP();
+	$amqp->publish($pingdomAlert);
 
 });
 
