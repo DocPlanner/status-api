@@ -6,7 +6,7 @@
 
 class AMQPWorker
 {
-	const TIME_TO_INCIDENT = 3;
+	const TIME_TO_INCIDENT = 120;
 
 	/** @var AMQP */
 	private $amqp;

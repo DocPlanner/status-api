@@ -15,7 +15,7 @@ class StatusPage
 	private $_httpClient;
 	private $_alert;
 
-	private $_aggregateIncidentsTime = 3600;
+	private $_aggregateIncidentsTime = 18000;
 
 	public function __construct()
 	{
