@@ -53,11 +53,6 @@ class StatusPage
 			]
 		]);
 
-		if(Config::STATUS_PAGE_ENABLE_INCIDENTS && $this->_alert->status == 'major_outage')
-		{
-			$this->_createIncident($alert);
-		}
-
 	}
 
 	public function getUnresolvedIncidents()
@@ -76,21 +71,25 @@ class StatusPage
 		}
 	}
 
-	private function _createIncident(Alert $alert)
+	public function createIncident(Alert $alert)
 	{
+		$this->_alert = $alert;
+
 		$component     = $this->_getComponentForAlert($alert);
 		$componentType = trim(explode(':', $component['name'])[0]);
 
-		$incidents = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/incidents/unresolved.json')->getBody()->getContents(), true);
-
-		foreach($incidents as $incident)
+		if($this->isIncidentOpen($component, $componentType))
 		{
-			if (stristr($incident['name'], $componentType) && strtotime($incident['created_at']) + $this->_aggregateIncidentsTime > time())
-			{
-				$this->_log('Incident for component '. $component['name'] .' not created due to aggregation rule.');
-				return false;
-			}
+			$this->_log('Incident for component '. $component['name'] .' not created due to aggregation rule.');
+			return false;
 		}
+
+		if($this->isComponentUp($component))
+		{
+			$this->_log('Component '. $component['name'] .' is UP, incident not created.');
+			return false;
+		}
+
 
 		$response = $this->_httpClient->post(Config::STATUS_PAGE_PAGE_ID .'/incidents.json', [
 			'debug' => self::DEBUG,
@@ -104,6 +103,41 @@ class StatusPage
 		$this->_log('Incident for component '. $component['name'] .' created.');
 
 		return true;
+	}
+
+	private function isIncidentOpen($component, $componentType)
+	{
+		$incidents = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/incidents/unresolved.json')->getBody()->getContents(), true);
+
+		foreach($incidents as $incident)
+		{
+			if (stristr($incident['name'], $componentType) && strtotime($incident['created_at']) + $this->_aggregateIncidentsTime > time())
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function isComponentUp($component)
+	{
+		$components = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/components.json')->getBody()->getContents(), true);
+
+		foreach($components as $c)
+		{
+			if($c['id'] == $component['id'])
+			{
+				if($component['status'] == 'operational')
+				{
+					return true;
+				}
+
+				return false;
+			}
+		}
+
+		return false;
 	}
 
 	private function _log($msg)

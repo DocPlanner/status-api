@@ -31,6 +31,8 @@ $app->post('/webhook/pingdom', function() use ($app) {
 
 	$pingdomAlert->setPayload($app->request()->getBody());
 
+	(new StatusPage())->update($pingdomAlert);
+
 	$amqp = new AMQP();
 	$amqp->publish($pingdomAlert);
 

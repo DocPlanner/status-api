@@ -6,7 +6,7 @@
 
 class AMQPWorker
 {
-	const TIME_TO_INCIDENT = 300;
+	const TIME_TO_INCIDENT = 3;
 
 	/** @var AMQP */
 	private $amqp;
@@ -20,6 +20,7 @@ class AMQPWorker
 		while(true)
 		{
 			$message = $this->getMessage();
+
 			if(false === $message)
 			{
 				break;
@@ -27,7 +28,7 @@ class AMQPWorker
 
 			if($message->created_at + self::TIME_TO_INCIDENT < time())
 			{
-				(new StatusPage())->update($message);
+				(new StatusPage())->createIncident($message);
 			}
 			else {
 				$rePublish[] = $message;
