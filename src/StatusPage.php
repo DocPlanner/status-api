@@ -29,7 +29,6 @@ class StatusPage
 	{
 		$components = json_decode($this->_httpClient->get(Config::STATUS_PAGE_PAGE_ID .'/components.json')->getBody()->getContents(), true);
 
-
 		foreach($components as $component)
 		{
 			if($component['id'] == $alert->component_id)
@@ -94,7 +93,7 @@ class StatusPage
 		$response = $this->_httpClient->post(Config::STATUS_PAGE_PAGE_ID .'/incidents.json', [
 			'debug' => self::DEBUG,
 			'form_params' => [
-				'incident[name]' 			=> $componentType . ' is having trouble',
+				'incident[name]' 			=> str_replace(":", "", $component['name']) . ' is having trouble',
 				'incident[status]' 			=> 'investigating',
 				'incident[component_ids][]'	=> $this->_alert->component_id,
 			]
